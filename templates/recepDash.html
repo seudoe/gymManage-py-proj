@@ -1,16 +1,55 @@
-{% extends 'layout.html' %}
+{% extends 'base_sidebar.html' %}
+
+{% block page_title %}Receptionist Dashboard{% endblock %}
 
 {% block body %}
-	<div class="container jumbotron" style="background-color: #edeba3; ">
-		 <h1><small> Welcome {{session.username}}</small></h1>
-		<div class="form-group">
-			<a href = "{{url_for('addMember')}}"><button type ="button" class="btn btn-outline-info btn-lg" >Add Member</button></a>
-		</div>
-		<div class="form-group">
-			<a href = "{{url_for('deleteMember')}}"><button type ="button" class="btn btn-outline-danger btn-lg" >Delete Member</button></a>
-		</div>
-		<div class="form-group">
-			<a href = "{{url_for('viewDetails')}}"><button type ="button" class="btn btn-outline-dark btn-lg" >View Details</button></a>
-		</div>
-	</div>
+<div class="row">
+    <div class="col-md-12">
+        <h3 style="margin-bottom: 30px; color: #2c3e50; font-weight: 600;">Member Management</h3>
+    </div>
+</div>
+
+<div class="row" style="margin-bottom: 30px;">
+    <div class="col-md-4">
+        <div class="stats-card">
+            <h3>Members</h3>
+            <p>Manage Gym Members</p>
+            <div style="margin-top: 15px;">
+                <a href="{{ url_for('addMember') }}" class="btn btn-primary">Add Member</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stats-card">
+            <h3>Remove</h3>
+            <p>Remove Members</p>
+            <div style="margin-top: 15px;">
+                <a href="{{ url_for('deleteMember') }}" class="btn btn-danger">Remove Member</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stats-card">
+            <h3>Profile</h3>
+            <p>View Your Profile</p>
+            <div style="margin-top: 15px;">
+                <a href="{{ url_for('profile', username=session.username) }}" class="btn btn-success">View Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h4 style="color: #2c3e50; margin-bottom: 20px; font-weight: 600;">Quick Info</h4>
+        <div style="background: #ecf0f1; padding: 20px; border-radius: 4px; border-left: 4px solid #3498db;">
+            <p style="margin: 0; color: #2c3e50;">
+                <strong>Welcome to the Reception Dashboard</strong><br>
+                You can add new members, remove existing members, and manage member information from here.
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock %}

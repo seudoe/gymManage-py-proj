@@ -1,66 +1,88 @@
-{% extends 'layout.html' %}
+{% extends 'base_sidebar.html' %}
+
+{% block page_title %}Member Dashboard{% endblock %}
 
 {% block body %}
-	<div class="container" >
-		<div class="text-white">
-		<h1 style><small> {{user}}</small></h1>
-	</div>
-		<div class="jumbotron" style="background-color: #f2deee ">
-		<h2 class = "text-center">{{plan}}</h2>
-
-		<div class="row text-center">
-		{% for exercise in scheme %}
-
-		<div class="col-sm-4 text">
-		
-		<h4>{{exercise['exercise']}}</h4>
-		<p>sets --&nbsp;&nbsp;{{exercise['sets']}}</p>
-		<p>reps --&nbsp;&nbsp;{{exercise['reps']}}</p>
-
-		</div>
-		
-		{% endfor %}
-		</div>
-		
-		</div>
-		<table style="width:100%; font-size: 20px;" class="text-white table-hover table-bordered table-dark table-striped">
-  <tr>
-    <th class="text-center " height="50"><strong>DATE</strong></th>
-    <th class="text-center " height="50"><strong>REPORT</strong></th> 
-    <th class="text-center " height="50"><strong>RESULT</strong></th> 
-  </tr>
-		{% for each in progress %}
-		<tr>
-		<td class="text-center" height="50">{{each['date']}}</td>
-		<td class="text-center" height="50">{{each['daily_result']}}</td>
-		{% if each['rate']==1 %}
-		<td class="text-center" style="color:green;" height="50">good</td>
-		{% endif %}
-		{% if each['rate']==2 %}
-		<td class="text-center" style="color: yellow;" height="50">average</td>
-		{% endif %}
-		{% if each['rate']==3 %}
-		<td class="text-center" style="color: red;" height="50">poor</td>
-		{% endif %}
-	</tr>
-		{% endfor %}
-	</table>
-	<br>
-	<br>
-	<div class="jumbotron" style="background-color: #efd7b6; ">
-	<h1>Performance Bar</h1>
-	<br>
-	  <div class="progress", style="height:30px">
-  <div class="progress-bar bg-success  progress-bar-striped progress-bar-animated text-dark font-weight-bold font-italic" style="width:{{good}}%; height:30px" >
-    Good {{good}}%
-  </div>
-  <div class="progress-bar bg-warning  progress-bar-striped progress-bar-animated text-dark font-weight-bold font-italic" style="width:{{average}}%; height:30px">
-    Average {{average}}%
-  </div>
-  <div class="progress-bar bg-danger  progress-bar-striped progress-bar-animated text-dark font-weight-bold font-italic " style="width:{{poor}}%; height:30px">
-    Poor {{poor}}%
-  </div>
-</div> 
+<div class="row">
+    <div class="col-md-12">
+        <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">Welcome, {{ user }}!</h3>
+    </div>
 </div>
-	</div> 
+
+<div class="row" style="margin-bottom: 30px;">
+    <div class="col-md-4">
+        <div class="stats-card" style="background: #27ae60; color: white;">
+            <h3 style="color: white;">{{ good }}%</h3>
+            <p style="color: white;">Good Performance</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stats-card" style="background: #f39c12; color: white;">
+            <h3 style="color: white;">{{ average }}%</h3>
+            <p style="color: white;">Average Performance</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stats-card" style="background: #e74c3c; color: white;">
+            <h3 style="color: white;">{{ poor }}%</h3>
+            <p style="color: white;">Needs Improvement</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <h4 style="color: #2c3e50; margin-bottom: 20px; font-weight: 600;">Your Workout Plan: {{ plan }}</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Exercise</th>
+                    <th>Reps</th>
+                    <th>Sets</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exercise in scheme %}
+                <tr>
+                    <td>{{ exercise.exercise }}</td>
+                    <td><span class="badge badge-info">{{ exercise.reps }}</span></td>
+                    <td><span class="badge badge-success">{{ exercise.sets }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-6">
+        <h4 style="color: #2c3e50; margin-bottom: 20px; font-weight: 600;">Progress History</h4>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Report</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prog in progress %}
+                    <tr>
+                        <td>{{ prog.date }}</td>
+                        <td>{{ prog.daily_result }}</td>
+                        <td>
+                            {% if prog.rate == 1 %}
+                            <span class="badge badge-success">Good</span>
+                            {% elif prog.rate == 2 %}
+                            <span class="badge badge-warning">Average</span>
+                            {% else %}
+                            <span class="badge badge-danger">Poor</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

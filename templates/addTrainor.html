@@ -1,34 +1,82 @@
-{% extends 'layout.html' %}
+{% extends 'base_sidebar.html' %}
+{% from "includes/_formhelpers.html" import render_field %}
+
+{% block page_title %}Manage Trainers{% endblock %}
 
 {% block body %}
-<div class="text-white">
-	<h1 style="font-family: Georgia, serif;">Enter Details</h1>
-  <div class="font-italic">
-  {% from "includes/_formhelpers.html" import render_field %}
-  <form method="POST" action="">
-    <div class="form-group">
-      {{render_field(form.name, class_="form-control")}}
+<div class="row" style="margin-bottom: 30px;">
+    <div class="col-md-12">
+        <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">All Trainers</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trainer in trainers %}
+                <tr>
+                    <td>{{ trainer.username }}</td>
+                    <td>{{ trainer.name }}</td>
+                    <td>{{ trainer.phone }}</td>
+                    <td>{{ trainer.city }}</td>
+                    <td>
+                        <a href="{{ url_for('profile', username=trainer.username) }}"
+                            class="btn btn-sm btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div class="form-group">
-      {{render_field(form.username, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.password, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.confirm, class_="form-control")}}
-    </div>
-     <div class="form-group">
-      {{render_field(form.street, class_="form-control")}}
-    </div>
-     <div class="form-group">
-      {{render_field(form.city, class_="form-control")}}
-    </div>
-     <div class="form-group">
-      {{render_field(form.phone, class_="form-control")}}
-    </div>
-    <p><input type="submit" class="btn btn-primary" value="Submit"></p>
-  </form>
 </div>
+
+<div class="row">
+    <div class="col-md-8">
+        <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">Add New Trainer</h3>
+        <form method="POST" action="">
+            <div class="form-group">
+                {{ render_field(form.name, class="form-control", placeholder="Enter full name") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.username, class="form-control", placeholder="Choose a username") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.password, class="form-control", placeholder="Enter password") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.confirm, class="form-control", placeholder="Confirm password") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.street, class="form-control", placeholder="Street address") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.city, class="form-control", placeholder="City") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.phone, class="form-control", placeholder="Phone number") }}
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg">Add Trainer</button>
+            <a href="{{ url_for('adminDash') }}" class="btn btn-secondary btn-lg">Cancel</a>
+        </form>
+    </div>
+    <div class="col-md-4">
+        <div style="background: #ecf0f1; padding: 20px; border-radius: 4px;">
+            <h5 style="color: #2c3e50; margin-bottom: 15px; font-weight: 600;">Instructions</h5>
+            <ul style="color: #7f8c8d; line-height: 1.8;">
+                <li>Fill in all required fields</li>
+                <li>Username must be unique</li>
+                <li>Password must match confirmation</li>
+                <li>Trainer will receive login credentials</li>
+            </ul>
+        </div>
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('deleteTrainor') }}" class="btn btn-danger btn-block">Remove Trainer</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -1,34 +1,70 @@
-{% extends 'layout.html' %}
+{% extends 'base_sidebar.html' %}
+
+{% block page_title %}Admin Dashboard{% endblock %}
 
 {% block body %}
-	<div class="container jumbotron" style="background-color: #bcf2cf">
-		 <h1><small>Welcome</small><span class="font-italic font-weight-bold" style="color: #0d5125"> {{session.username}}</span></h1>
-		<div class="form-group">
-			<a href = "{{url_for('addTrainor')}}"><button type ="button" class="btn btn-outline-info btn-lg" >Add Trainer</button></a>
-		</div>
-		<div class="form-group">
-			<a href = "{{url_for('deleteTrainor')}}"><button type ="button" class="btn btn-outline-danger btn-lg" >Delete Trainer</button></a>
-		</div>
-		<div class="form-group">
-		<a href = "{{url_for('addRecep')}}"><button type ="button" class="btn btn-outline-info btn-lg" >Add Receptionist</button></a>
-		</div>
-		<div class="form-group">
-			<a href = "{{url_for('deleteRecep')}}"><button type ="button" class="btn btn-outline-danger btn-lg" >Delete Receptionist</button></a>
-		</div>
-		<div class="form-group">
-			<a href = "{{url_for('addEquip')}}"><button type ="button" class="btn btn-outline-info btn-lg" >Add Equipment</button></a>
-		</div>
-		<div class="form-group">
-			<a href = "{{url_for('removeEquip')}}"><button type ="button" class="btn btn-outline-danger btn-lg" >Remove Equipment</button></a>
-		</div>
-		<div class="form-group">
-			<a href = "{{url_for('addMember')}}"><button type ="button" class="btn btn-outline-info btn-lg" >Add Member</button></a>
-		</div>
-		<div class="form-group">
-			<a href = "{{url_for('deleteMember')}}"><button type ="button" class="btn btn-outline-danger btn-lg" >Delete Member</button></a>
-		</div>
-		<div class="form-group">
-			<a href = "{{url_for('viewDetails')}}"><button type ="button" class="btn btn-outline-secondary btn-lg" >View details</button></a>
+<div class="row">
+	<div class="col-md-12">
+		<h3 style="margin-bottom: 30px; color: #2c3e50; font-weight: 600;">Quick Actions</h3>
+	</div>
+</div>
+
+<div class="row" style="margin-bottom: 30px;">
+	<div class="col-md-3">
+		<div class="stats-card">
+			<h3>Trainers</h3>
+			<p>Manage Trainers</p>
+			<div style="margin-top: 15px;">
+				<a href="{{ url_for('addTrainor') }}" class="btn btn-primary btn-sm">Add</a>
+				<a href="{{ url_for('deleteTrainor') }}" class="btn btn-danger btn-sm">Remove</a>
+			</div>
 		</div>
 	</div>
+
+	<div class="col-md-3">
+		<div class="stats-card">
+			<h3>Receptionists</h3>
+			<p>Manage Reception Staff</p>
+			<div style="margin-top: 15px;">
+				<a href="{{ url_for('addRecep') }}" class="btn btn-primary btn-sm">Add</a>
+				<a href="{{ url_for('deleteRecep') }}" class="btn btn-danger btn-sm">Remove</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-3">
+		<div class="stats-card">
+			<h3>Equipment</h3>
+			<p>Manage Gym Equipment</p>
+			<div style="margin-top: 15px;">
+				<a href="{{ url_for('addEquip') }}" class="btn btn-primary btn-sm">Add</a>
+				<a href="{{ url_for('removeEquip') }}" class="btn btn-danger btn-sm">Remove</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-3">
+		<div class="stats-card">
+			<h3>Members</h3>
+			<p>Manage Gym Members</p>
+			<div style="margin-top: 15px;">
+				<a href="{{ url_for('addMember') }}" class="btn btn-primary btn-sm">Add</a>
+				<a href="{{ url_for('deleteMember') }}" class="btn btn-danger btn-sm">Remove</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-12">
+		<h4 style="color: #2c3e50; margin-bottom: 20px; font-weight: 600;">System Overview</h4>
+		<div style="background: #ecf0f1; padding: 20px; border-radius: 4px; border-left: 4px solid #3498db;">
+			<p style="margin: 0; color: #2c3e50;">
+				<strong>Welcome to the Admin Dashboard</strong><br>
+				Use the sidebar to navigate through different sections or use the quick actions above to manage your gym
+				efficiently.
+			</p>
+		</div>
+	</div>
+</div>
 {% endblock %}

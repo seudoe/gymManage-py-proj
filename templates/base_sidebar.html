@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Gym Management System</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'assets/bootstrap/css/bootstrap.min.css')}}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f6fa;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 250px;
+            background: #2c3e50;
+            padding: 0;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            background: #34495e;
+            border-bottom: 1px solid #2c3e50;
+        }
+
+        .sidebar-header h3 {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 5px 0;
+        }
+
+        .sidebar-header p {
+            color: #95a5a6;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 15px 0;
+        }
+
+        .sidebar-menu li {
+            margin: 0;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 14px 20px;
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            font-size: 14px;
+        }
+
+        .sidebar-menu a:hover {
+            background: #34495e;
+            color: #fff;
+            border-left-color: #3498db;
+        }
+
+        .sidebar-menu a.active {
+            background: #34495e;
+            color: #fff;
+            border-left-color: #3498db;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-bar h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .content-card {
+            background: #fff;
+            border-radius: 4px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            border: 1px solid #3498db;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            border-color: #2980b9;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            border: 1px solid #e74c3c;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 4px;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+            border-color: #c0392b;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            border: 1px solid #27ae60;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 4px;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            border-color: #229954;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            border: 1px solid #95a5a6;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+            border-color: #7f8c8d;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            border: 1px solid #f39c12;
+            color: #fff;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+            border-color: #e67e22;
+        }
+
+        .form-control {
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            padding: 10px 12px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+            outline: none;
+        }
+
+        .alert {
+            border-radius: 4px;
+            border: none;
+            padding: 12px 20px;
+        }
+
+        .stats-card {
+            background: #fff;
+            border-radius: 4px;
+            padding: 25px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            height: 100%;
+        }
+
+        .stats-card h3 {
+            font-size: 32px;
+            margin: 15px 0;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .stats-card p {
+            color: #7f8c8d;
+            margin: 0 0 15px 0;
+            font-size: 14px;
+        }
+
+        .stats-card .icon {
+            font-size: 40px;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        table {
+            background: #fff;
+        }
+
+        thead {
+            background: #34495e;
+            color: #fff;
+        }
+
+        thead th {
+            font-weight: 600;
+            border: none;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background: #3498db;
+            color: #fff;
+        }
+
+        .badge-success {
+            background: #27ae60;
+            color: #fff;
+        }
+
+        .badge-warning {
+            background: #f39c12;
+            color: #fff;
+        }
+
+        .badge-danger {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .badge-info {
+            background: #3498db;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Gym Manager</h3>
+            <p>{{ session.username }}</p>
+        </div>
+        <ul class="sidebar-menu">
+            {% if session.prof == 1 %}
+            <li><a href="{{ url_for('adminDash') }}"
+                    class="{% if request.endpoint == 'adminDash' %}active{% endif %}">Dashboard</a></li>
+            <li><a href="{{ url_for('addTrainor') }}"
+                    class="{% if request.endpoint == 'addTrainor' %}active{% endif %}">Trainers</a></li>
+            <li><a href="{{ url_for('addRecep') }}"
+                    class="{% if request.endpoint == 'addRecep' %}active{% endif %}">Receptionists</a></li>
+            <li><a href="{{ url_for('addEquip') }}"
+                    class="{% if request.endpoint == 'addEquip' %}active{% endif %}">Equipment</a></li>
+            <li><a href="{{ url_for('addMember') }}"
+                    class="{% if request.endpoint == 'addMember' %}active{% endif %}">Members</a></li>
+            <li><a href="{{ url_for('profile', username=session.username) }}"
+                    class="{% if request.endpoint == 'profile' %}active{% endif %}">Profile</a></li>
+            {% elif session.prof == 2 %}
+            <li><a href="{{ url_for('recepDash') }}"
+                    class="{% if request.endpoint == 'recepDash' %}active{% endif %}">Dashboard</a></li>
+            <li><a href="{{ url_for('addMember') }}"
+                    class="{% if request.endpoint == 'addMember' %}active{% endif %}">Members</a></li>
+            <li><a href="{{ url_for('profile', username=session.username) }}"
+                    class="{% if request.endpoint == 'profile' %}active{% endif %}">Profile</a></li>
+            {% elif session.prof == 3 %}
+            <li><a href="{{ url_for('trainorDash') }}"
+                    class="{% if request.endpoint == 'trainorDash' %}active{% endif %}">Dashboard</a></li>
+            <li><a href="{{ url_for('updatePlans') }}"
+                    class="{% if request.endpoint == 'updatePlans' %}active{% endif %}">Update Plans</a></li>
+            <li><a href="{{ url_for('profile', username=session.username) }}"
+                    class="{% if request.endpoint == 'profile' %}active{% endif %}">Profile</a></li>
+            {% else %}
+            <li><a href="{{ url_for('memberDash', username=session.username) }}"
+                    class="{% if request.endpoint == 'memberDash' %}active{% endif %}">Dashboard</a></li>
+            <li><a href="{{ url_for('profile', username=session.username) }}"
+                    class="{% if request.endpoint == 'profile' %}active{% endif %}">Profile</a></li>
+            {% endif %}
+            <li style="margin-top: 20px; border-top: 1px solid #34495e; padding-top: 10px;">
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+            <div class="user-info">
+                <div class="user-avatar">{{ session.username[0].upper() }}</div>
+                <span>{{ session.username }}</span>
+            </div>
+        </div>
+
+        {% include 'includes/_messages.html' %}
+
+        <div class="content-card">
+            {% block body %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="{{url_for('static', filename = 'assets/bootstrap/js/bootstrap.min.js')}}"></script>
+</body>
+
+</html>

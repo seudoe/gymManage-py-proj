@@ -1,11 +1,27 @@
-{% extends 'layout.html' %}
+{% extends 'base_sidebar.html' %}
+
+{% block page_title %}All Users{% endblock %}
 
 {% block body %}
-	<div class="container">
-			{% for each in result %}
-		 <div class="form-group">
-			<a href = "{{url_for('profile', username = each['username'])}}"><button type ="button" class="btn btn-outline-warning" >{{each['username']}}</button></a>
-		</div>
-		 {% endfor %}			 
-	</div
+<div class="row">
+    <div class="col-md-12">
+        <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">All Users</h3>
+        <div class="row">
+            {% for each in result %}
+            <div class="col-md-3" style="margin-bottom: 20px;">
+                <div
+                    style="background: white; border-radius: 4px; padding: 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div
+                        style="width: 60px; height: 60px; border-radius: 50%; background: #3498db; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; font-weight: 600;">
+                        {{ each['username'][0].upper() }}
+                    </div>
+                    <h5 style="margin-bottom: 15px;">{{ each['username'] }}</h5>
+                    <a href="{{url_for('profile', username = each['username'])}}" class="btn btn-primary btn-sm">View
+                        Profile</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -1,30 +1,65 @@
-{% extends 'layout.html' %}
+{% extends 'base_sidebar.html' %}
+
+{% block page_title %}Profile{% endblock %}
 
 {% block body %}
-	<div class="container jumbotron" style=" background-color: #becde5;">
-		<p style="font-size: 25px"><strong style="font-variant: small-caps; ">Name</strong>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{result['name']}}</p>
-		<br>
-		<p style="font-size: 25px"><strong style="font-variant: small-caps;">Username</strong>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{result['username']}}</p>
-		<br>
-		{% if result['prof']==1 %}
-		<p style="font-size: 25px"><strong style="font-variant: small-caps;">Profession</strong>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;Owner</p>
-		{% else %}
-			{% if result['prof']==2 %}
-			<p style="font-size: 25px"><strong style="font-variant: small-caps;">Profession</strong>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;Receptionist</p>
-			{% else %}
-				{% if result['prof']==3 %}
-				<p style="font-size: 25px"><strong style="font-variant: small-caps;">Profession</strong>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;Trainer</p>
-				{% else %}
-				<p style="font-size: 25px"><strong style="font-variant: small-caps;">Profession</strong>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;Member</p>
-				{% endif %}
-			{% endif %}
-		{% endif %}
-		<br>
-		<p style="font-size: 25px"><strong style="font-variant: small-caps;">Phone</strong>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{result['phone']}}</p>
-		<br>
-		<p style="font-size: 25px"><strong style="font-variant: small-caps;">Street</strong>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{result['street']}}</p>
-		<br>
-		<p style="font-size: 25px"><strong style="font-variant: small-caps;">City</strong>&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{result['city']}}</p>
-		<br>
-	</div>
+<div class="row">
+    <div class="col-md-8">
+        <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">Profile Information</h3>
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th style="width: 30%; background: #f8f9fa;">Username</th>
+                    <td>{{ result.username }}</td>
+                </tr>
+                <tr>
+                    <th style="background: #f8f9fa;">Name</th>
+                    <td>{{ result.name }}</td>
+                </tr>
+                <tr>
+                    <th style="background: #f8f9fa;">Street</th>
+                    <td>{{ result.street }}</td>
+                </tr>
+                <tr>
+                    <th style="background: #f8f9fa;">City</th>
+                    <td>{{ result.city }}</td>
+                </tr>
+                <tr>
+                    <th style="background: #f8f9fa;">Phone</th>
+                    <td>{{ result.phone }}</td>
+                </tr>
+                <tr>
+                    <th style="background: #f8f9fa;">Role</th>
+                    <td>
+                        {% if result.prof == 1 %}
+                        <span class="badge badge-danger">Admin</span>
+                        {% elif result.prof == 2 %}
+                        <span class="badge badge-info">Receptionist</span>
+                        {% elif result.prof == 3 %}
+                        <span class="badge badge-success">Trainer</span>
+                        {% else %}
+                        <span class="badge badge-primary">Member</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('edit_profile', username=result.username) }}" class="btn btn-primary btn-lg">Edit
+                Profile</a>
+            <a href="{{ url_for('update_password', username=result.username) }}" class="btn btn-warning btn-lg">Change
+                Password</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div style="background: #3498db; padding: 30px; border-radius: 4px; text-align: center; color: white;">
+            <div
+                style="width: 100px; height: 100px; border-radius: 50%; background: white; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 48px; color: #3498db; font-weight: 600;">
+                {{ result.username[0].upper() }}
+            </div>
+            <h4 style="margin: 0; font-weight: 600;">{{ result.name }}</h4>
+            <p style="margin: 5px 0 0 0; opacity: 0.9;">@{{ result.username }}</p>
+        </div>
+    </div>
+</div>
 {% endblock %}

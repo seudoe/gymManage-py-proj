@@ -1,58 +1,85 @@
-{% extends 'layout.html' %}
+{% extends 'base_sidebar.html' %}
+{% from "includes/_formhelpers.html" import render_field %}
+
+{% block page_title %}Trainer Dashboard{% endblock %}
 
 {% block body %}
-	<div class="container">
-		<h1><small class="text-white">Welcome</small><span class="font-italic font-weight-bold text-danger"> {{session.username}}</span></h1>
-    <div class="jumbotron" style="background-color: #94bfac;">
-		<h1 style="font-variant: small-caps;">Equipment</h1>
-    <div class="jumbotron" style="background-color: white;">
-		{% for each in equips %}
-			<p style="font-size: 20px " class="font-italic">{{each['name']}}&nbsp;&nbsp;<strong>x{{each['count']}}</strong></p>
-		{% endfor %}
-    </div>
-    </div>
-
-
-    <div class="jumbotron" style="background-color: #f5e7a1;">
-    <h1 style="font-variant: small-caps;">Evaluation</h1>
-    <div style="font-size: 20px" class="font-italic">
-	{% from "includes/_formhelpers.html" import render_field %}
-  	<form method="POST" action="">
-    <div class="form-group" >
-      {{render_field(form.name, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.date, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.report, class_="form-control")}}
-    </div>
-    <div class="form-group" >
-      {{render_field(form.rate, class_="form-control")}}
-    </div>
-    <p><input type="submit" class="btn btn-primary" value="Submit"></p>
-  </form>
-  </div>
-  </div>
-  <br>
-  <br>
-
-
-  <div class="jumbotron" style="background-color: #8fc693;">
-  <h1 style="font-variant: small-caps;">Members that train under you</h1>
-  <br>
-  {% for each in members %}
-    <a href="{{url_for('memberDash', username = each['username'])}}"><button type="button" class="btn btn-outline-dark">{{each['username']}}</button></a>
-    <br>
-    <br>
-  {% endfor %}
+<div class="row">
+  <div class="col-md-6">
+    <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">Equipment Inventory</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Equipment Name</th>
+          <th>Available Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for equip in equips %}
+        <tr>
+          <td>{{ equip.name }}</td>
+          <td><span class="badge badge-primary">{{ equip.count }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 
+  <div class="col-md-6">
+    <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">My Members</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Member Username</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in members %}
+        <tr>
+          <td>{{ member.username }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-  <div class="jumbotron" style="background-color: #fbded6">
-  <div class="form-group">
-      <a href = "{{url_for('updatePlans')}}"><button type ="button" class="btn btn-secondary btn-lg" >Update Plans</button></a>
+<div class="row" style="margin-top: 30px;">
+  <div class="col-md-8">
+    <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">Update Member Progress</h3>
+    <form method="POST" action="">
+      <div class="form-group">
+        <label>Select Member</label>
+        {{ render_field(form.name, class="form-control") }}
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        {{ render_field(form.date, class="form-control") }}
+      </div>
+      <div class="form-group">
+        <label>Progress Report</label>
+        {{ render_field(form.report, class="form-control", placeholder="Enter daily progress notes") }}
+      </div>
+      <div class="form-group">
+        <label>Performance Rating</label>
+        {{ render_field(form.rate, class="form-control") }}
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg">Submit Progress</button>
+    </form>
+  </div>
+  <div class="col-md-4">
+    <div style="background: #ecf0f1; padding: 20px; border-radius: 4px;">
+      <h5 style="color: #2c3e50; margin-bottom: 15px; font-weight: 600;">Instructions</h5>
+      <ul style="color: #7f8c8d; line-height: 1.8;">
+        <li>Select member from your list</li>
+        <li>Choose the date</li>
+        <li>Write progress notes</li>
+        <li>Rate their performance</li>
+      </ul>
+    </div>
+    <div style="margin-top: 20px;">
+      <a href="{{ url_for('updatePlans') }}" class="btn btn-success btn-block">Update Workout Plans</a>
     </div>
   </div>
-  </div>
+</div>
 {% endblock %}

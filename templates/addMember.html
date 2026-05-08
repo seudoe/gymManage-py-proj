@@ -1,40 +1,99 @@
-{% extends 'layout.html' %}
+﻿{% extends 'base_sidebar.html' %}
+{% from "includes/_formhelpers.html" import render_field %}
+
+{% block page_title %}Manage Members{% endblock %}
 
 {% block body %}
-<div class="text-white">
-	<h1 style="font-family: Georgia, serif;">Enter Details</h1>
-  <div class="font-italic">
-  {% from "includes/_formhelpers.html" import render_field %}
-  <form method="POST" action="">
-    <div class="form-group">
-      {{render_field(form.name, class_="form-control")}}
+<div class="row" style="margin-bottom: 30px;">
+    <div class="col-md-12">
+        <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">All Members</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Plan</th>
+                    <th>Trainer</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in members %}
+                <tr>
+                    <td>{{ member.username }}</td>
+                    <td>{{ member.name }}</td>
+                    <td>{{ member.phone }}</td>
+                    <td>{{ member.plan }}</td>
+                    <td>{{ member.trainor }}</td>
+                    <td>
+                        <a href="{{ url_for('profile', username=member.username) }}"
+                            class="btn btn-sm btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div class="form-group">
-      {{render_field(form.username, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.password, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.confirm, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.plan, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.trainor, class_="form-control")}}
-    </div>
-     <div class="form-group">
-      {{render_field(form.street, class_="form-control")}}
-    </div>
-     <div class="form-group">
-      {{render_field(form.city, class_="form-control")}}
-    </div>
-     <div class="form-group">
-      {{render_field(form.phone, class_="form-control")}}
-    </div>
-    <p><input type="submit" class="btn btn-primary" value="Submit"></p>
-  </form>
 </div>
+
+<div class="row">
+    <div class="col-md-8">
+        <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">Add New Member</h3>
+        <form method="POST" action="">
+            <div class="form-group">
+                {{ render_field(form.name, class="form-control", placeholder="Enter full name") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.username, class="form-control", placeholder="Choose a username") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.password, class="form-control", placeholder="Enter password") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.confirm, class="form-control", placeholder="Confirm password") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.street, class="form-control", placeholder="Street address") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.city, class="form-control", placeholder="City") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.phone, class="form-control", placeholder="Phone number") }}
+            </div>
+            <div class="form-group">
+                <label>Select Plan</label>
+                <div>
+                    {% for subfield in form.plan %}
+                    <div class="form-check">
+                        {{ subfield(class="form-check-input") }}
+                        {{ subfield.label(class="form-check-label") }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Assign Trainer</label>
+                {{ form.trainor(class="form-control") }}
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg">Add Member</button>
+            <a href="{% if session.prof == 1 %}{{ url_for('adminDash') }}{% else %}{{ url_for('recepDash') }}{% endif %}"
+                class="btn btn-secondary btn-lg">Cancel</a>
+        </form>
+    </div>
+    <div class="col-md-4">
+        <div style="background: #ecf0f1; padding: 20px; border-radius: 4px;">
+            <h5 style="color: #2c3e50; margin-bottom: 15px; font-weight: 600;">Instructions</h5>
+            <ul style="color: #7f8c8d; line-height: 1.8;">
+                <li>Fill in all member details</li>
+                <li>Select a workout plan</li>
+                <li>Assign a personal trainer</li>
+            </ul>
+        </div>
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('deleteMember') }}" class="btn btn-danger btn-block">Remove Member</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

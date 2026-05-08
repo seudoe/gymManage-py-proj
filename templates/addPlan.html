@@ -1,25 +1,41 @@
-{% extends 'layout.html' %}
+{% extends 'base_sidebar.html' %}
+{% from "includes/_formhelpers.html" import render_field %}
+
+{% block page_title %}Update Workout Plans{% endblock %}
 
 {% block body %}
-<div class="text-white">
-	<h1 style="font-family: Georgia, serif;">Enter Details</h1>
-  <div class="font-italic">
-  {% from "includes/_formhelpers.html" import render_field %}
-  <form method="POST" action="">
-    <div class="form-group">
-      {{render_field(form.name, class_="form-control")}}
+<div class="row">
+    <div class="col-md-8">
+        <h3 style="margin-bottom: 25px; color: #2c3e50; font-weight: 600;">Update Workout Plan</h3>
+        <form method="POST" action="">
+            <div class="form-group">
+                {{ render_field(form.name, class="form-control", placeholder="Plan name (e.g., Beginner, Advanced)") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.exercise, class="form-control", placeholder="Exercise name (e.g., Bench Press,
+                Squats)") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.reps, class="form-control", placeholder="Number of repetitions") }}
+            </div>
+            <div class="form-group">
+                {{ render_field(form.sets, class="form-control", placeholder="Number of sets") }}
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg">Update Plan</button>
+            <a href="{{ url_for('trainorDash') }}" class="btn btn-secondary btn-lg">Cancel</a>
+        </form>
     </div>
-    <div class="form-group">
-      {{render_field(form.exercise, class_="form-control")}}
+    <div class="col-md-4">
+        <div style="background: #ecf0f1; padding: 20px; border-radius: 4px;">
+            <h5 style="color: #2c3e50; margin-bottom: 15px; font-weight: 600;">Instructions</h5>
+            <ul style="color: #7f8c8d; line-height: 1.8;">
+                <li>Enter plan name</li>
+                <li>Specify exercise</li>
+                <li>Set reps (1-20)</li>
+                <li>Set number of sets (1-20)</li>
+                <li>If exists, will update</li>
+            </ul>
+        </div>
     </div>
-    <div class="form-group">
-      {{render_field(form.reps, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.sets, class_="form-control")}}
-    </div>
-    <p><input type="submit" class="btn btn-primary" value="Submit"></p>
-  </form>
-</div>
 </div>
 {% endblock %}

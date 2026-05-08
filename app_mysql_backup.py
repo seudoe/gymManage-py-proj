@@ -22,8 +22,18 @@ def close_connection(exception):
 	if db is not None:
 		db.close()
 
-def dict_from_row(row):
-	return dict(zip(row.keys(), row))
+def query_db(query, args=(), one=False):
+	cur = get_db().execute(query, args)
+	rv = cur.fetchall()
+	cur.close()
+	return (rv[0] if rv else None) if one else rv
+
+def execute_db(query, args=()):
+	db = get_db()
+	cur = db.cursor()
+	cur.execute(query, args)
+	db.commit()
+	return cur
 
 def is_logged_in(f):
 	@wraps(f)
@@ -76,18 +86,19 @@ def login():
 		username = request.form['username']
 		password_candidate = request.form['password']
 
-		db = get_db()
-		cur = db.execute('SELECT * FROM info WHERE username = ?', [username])
-		result = cur.fetchone()
-		
-		if result:
-			data = dict_from_row(result)
+		cur = mysql.connection.cursor()
+
+		result = cur.execute('SELECT * FROM info WHERE username = %s', [username])
+		#print(result)
+		if result>0:
+			data = cur.fetchone()
 			password = data['password']
 
 			if sha256_crypt.verify(password_candidate, password):
 				session['logged_in'] = True
 				session['username'] = username
 				session['prof'] = data['prof']
+				#session['hash'] = sha256_crypt.encrypt(username)
 				flash('You are logged in', 'success')
 				if session['prof'] == 1:
 					return redirect(url_for('adminDash'))
@@ -95,10 +106,13 @@ def login():
 					return redirect(url_for('trainorDash'))
 				if session['prof'] == 2:
 					return redirect(url_for('recepDash'))
+				#s = 'memberDash/%s', (username)
 				return redirect(url_for('memberDash', username = username))
 			else:
 				error = 'Invalid login'
 				return render_template('login.html', error = error)
+
+			cur.close();
 		else:
 			error = 'Username NOT FOUND'
 			return render_template('login.html', error = error)
@@ -121,14 +135,16 @@ def update_password(username):
 	if request.method == 'POST' and form.validate():
 		new = form.new_password.data
 		entered = form.old_password.data
-		db = get_db()
-		cur = db.execute("SELECT password FROM info WHERE username = ?", [username])
-		old = dict_from_row(cur.fetchone())['password']
+		cur = mysql.connection.cursor()
+		cur.execute("SELECT password FROM info WHERE username = %s", [username])
+		old = (cur.fetchone())['password']
 		if sha256_crypt.verify(entered, old):
-			db.execute("UPDATE info SET password = ? WHERE username = ?", (sha256_crypt.hash(new), username))
-			db.commit()
+			cur.execute("UPDATE info SET password = %s WHERE username = %s", (sha256_crypt.encrypt(new), username))
+			mysql.connection.commit()
+			cur.close()
 			flash('New password will be in effect from next login!!', 'info')
 			return redirect(url_for('memberDash', username = session['username']))
+		cur.close()
 		flash('Old password you entered is wrong!!, try again', 'warning')
 	return render_template('updatePassword.html', form = form)
 
@@ -160,35 +176,35 @@ class AddTrainorForm(Form):
 @is_admin
 def addTrainor():
 	values.clear()
-	db = get_db()
-	cur = db.execute("SELECT username FROM info")
+	cur = mysql.connection.cursor()
+	q = cur.execute("SELECT username FROM info")
 	b = cur.fetchall()
-	for row in b:
-		values.append(row['username'])
-	
-	# Get all trainers with their info
-	cur = db.execute("""
-		SELECT i.username, i.name, i.phone, i.city 
-		FROM info i 
-		JOIN trainors t ON i.username = t.username
-	""")
-	trainers = cur.fetchall()
-	
+	for i in range(q):
+		values.append(b[i]['username'])
+	#app.logger.info(b[0]['username'])
+	#res = values.fetchall()
+	#app.logger.info(res)
+	cur.close()
 	form = AddTrainorForm(request.form)
 	if request.method == 'POST' and form.validate():
+		#app.logger.info("setzdgxfhcgjvkhbjlkn")
 		name = form.name.data
 		username = form.username.data
-		password = sha256_crypt.hash(str(form.password.data))
+		password = sha256_crypt.encrypt(str(form.password.data))
 		street = form.street.data
 		city = form.city.data
+		prof = 2
 		phone = form.phone.data
 
-		db.execute("INSERT INTO info(name, username, password, street, city, prof, phone) VALUES(?, ?, ?, ?, ?, ?, ?)", (name, username, password, street, city, 3, phone))
-		db.execute("INSERT INTO trainors(username) VALUES(?)", [username])
-		db.commit()
+		cur = mysql.connection.cursor()
+
+		cur.execute("INSERT INTO info(name, username, password, street, city, prof, phone) VALUES(%s, %s, %s, %s, %s, %s, %s)", (name, username, password, street, city, 3,phone))
+		cur.execute("INSERT INTO trainors(username) VALUES(%s)", [username])
+		mysql.connection.commit()
+		cur.close()
 		flash('You recruited a new Trainor!!', 'success')
 		return redirect(url_for('adminDash'))
-	return render_template('addTrainor.html', form=form, trainers=trainers)
+	return render_template('addTrainor.html', form=form)
 
 
 
@@ -202,25 +218,27 @@ class DeleteRecepForm(Form):
 @is_admin
 def deleteTrainor():
 	choices.clear()
-	db = get_db()
-	cur = db.execute("SELECT username FROM trainors")
+	cur = mysql.connection.cursor()
+	q = cur.execute("SELECT username FROM trainors")
 	b = cur.fetchall()
-	for row in b:
-		tup = (row['username'], row['username'])
+	for i in range(q):
+		tup = (b[i]['username'],b[i]['username'])
 		choices.append(tup)
 	form = DeleteRecepForm(request.form)
 	if len(choices)==1:
 		flash('You cannot remove your only Trainor!!', 'danger')
 		return redirect(url_for('adminDash'))
 	if request.method == 'POST':
+		#app.logger.info(form.username.data)
 		username = form.username.data
-		cur = db.execute("SELECT username FROM trainors WHERE username != ?", [username])
+		q = cur.execute("SELECT username FROM trainors WHERE username != %s", [username])
 		b = cur.fetchall()
 		new = b[0]['username']
-		db.execute("UPDATE members SET trainor = ? WHERE trainor = ?", (new, username))
-		db.execute("DELETE FROM trainors WHERE username = ?", [username])
-		db.execute("DELETE FROM info WHERE username = ?", [username])
-		db.commit()
+		cur.execute("UPDATE members SET trainor = %s WHERE trainor = %s", (new, username))
+		cur.execute("DELETE FROM trainors WHERE username = %s", [username])
+		cur.execute("DELETE FROM info WHERE username = %s", [username])
+		mysql.connection.commit()
+		cur.close()
 		choices.clear()
 		flash('You removed your Trainor!!', 'success')
 		return redirect(url_for('adminDash'))
@@ -232,35 +250,34 @@ def deleteTrainor():
 @is_admin
 def addRecep():
 	values.clear()
-	db = get_db()
-	cur = db.execute("SELECT username FROM info")
+	cur = mysql.connection.cursor()
+	q = cur.execute("SELECT username FROM info")
 	b = cur.fetchall()
-	for row in b:
-		values.append(row['username'])
-	
-	# Get all receptionists with their info
-	cur = db.execute("""
-		SELECT i.username, i.name, i.phone, i.city 
-		FROM info i 
-		JOIN receps r ON i.username = r.username
-	""")
-	receps = cur.fetchall()
-	
+	for i in range(q):
+		values.append(b[i]['username'])
+	#app.logger.info(b[0]['username'])
+	#res = values.fetchall()
+	#app.logger.info(res)
+	cur.close()
 	form = AddTrainorForm(request.form)
 	if request.method == 'POST' and form.validate():
+		#app.logger.info("setzdgxfhcgjvkhbjlkn")
 		name = form.name.data
 		username = form.username.data
-		password = sha256_crypt.hash(str(form.password.data))
+		password = sha256_crypt.encrypt(str(form.password.data))
 		street = form.street.data
 		city = form.city.data
 		phone = form.phone.data
 
-		db.execute("INSERT INTO info(name, username, password, street, city, prof, phone) VALUES(?, ?, ?, ?, ?, ?, ?)", (name, username, password, street, city, 2, phone))
-		db.execute("INSERT INTO receps(username) VALUES(?)", [username])
-		db.commit()
+		cur = mysql.connection.cursor()
+
+		cur.execute("INSERT INTO info(name, username, password, street, city, prof, phone) VALUES(%s, %s, %s, %s, %s, %s, %s)", (name, username, password, street, city, 2,phone))
+		cur.execute("INSERT INTO receps(username) VALUES(%s)", [username])
+		mysql.connection.commit()
+		cur.close()
 		flash('You recruited a new Receptionist!!', 'success')
 		return redirect(url_for('adminDash'))
-	return render_template('addRecep.html', form=form, receps=receps)
+	return render_template('addRecep.html', form=form)
 
 class DeleteRecepForm(Form):
 	username = SelectField(u'Choose which one you wanted to delete', choices=choices)
@@ -272,21 +289,23 @@ class DeleteRecepForm(Form):
 @is_admin
 def deleteRecep():
 	choices.clear()
-	db = get_db()
-	cur = db.execute("SELECT username FROM receps")
+	cur = mysql.connection.cursor()
+	q = cur.execute("SELECT username FROM receps")
 	b = cur.fetchall()
-	for row in b:
-		tup = (row['username'], row['username'])
+	for i in range(q):
+		tup = (b[i]['username'],b[i]['username'])
 		choices.append(tup)
 	if len(choices)==1:
 		flash('You cannot remove your only receptionist!!', 'danger')
 		return redirect(url_for('adminDash'))
 	form = DeleteRecepForm(request.form)
 	if request.method == 'POST':
+		#app.logger.info(form.username.data)
 		username = form.username.data
-		db.execute("DELETE FROM receps WHERE username = ?", [username])
-		db.execute("DELETE FROM info WHERE username = ?", [username])
-		db.commit()
+		cur.execute("DELETE FROM receps WHERE username = %s", [username])
+		cur.execute("DELETE FROM info WHERE username = %s", [username])
+		mysql.connection.commit()
+		cur.close()
 		choices.clear()
 		flash('You removed your receptionist!!', 'success')
 		return redirect(url_for('adminDash'))
@@ -302,33 +321,29 @@ class AddEquipForm(Form):
 @is_logged_in
 @is_admin
 def addEquip():
-	db = get_db()
-	
-	# Get all equipment
-	cur = db.execute("SELECT name, count FROM equip ORDER BY name")
-	all_equip = cur.fetchall()
-	
 	form = AddEquipForm(request.form)
 	if request.method == 'POST' and form.validate():
 		name = form.name.data
 		count = form.count.data
-		cur = db.execute("SELECT name FROM equip")
+		cur = mysql.connection.cursor()
+		q = cur.execute("SELECT name FROM equip")
 		equips = []
 		b = cur.fetchall()
-		for row in b:
-			equips.append(row['name'])
+		for i in range(q):
+			equips.append(b[i]['name'])
 		if name in equips:
-			db.execute("UPDATE equip SET count = count+? WHERE name = ?", (count, name))
+			cur.execute("UPDATE equip SET count = count+%s WHERE name = %s", (count, name))
 		else:
-			db.execute("INSERT INTO equip(name, count) VALUES(?, ?)", (name, count))
-		db.commit()
+			cur.execute("INSERT INTO equip(name, count) VALUES(%s, %s)", (name, count))
+		mysql.connection.commit()
+		cur.close()
 		flash('You added a new Equipment!!', 'success')
-		return redirect(url_for('addEquip'))
-	return render_template('addEquip.html', form = form, equipment=all_equip)
+		return redirect(url_for('adminDash'))
+	return render_template('addEquip.html', form = form)
 
 class RemoveEquipForm(Form):
 	name = RadioField('Name', choices = choices)
-	count = IntegerField('Count', [validators.Optional()])
+	count = IntegerField('Count', [validators.InputRequired()])
 
 
 @app.route('/removeEquip', methods = ['GET', 'POST'])
@@ -336,44 +351,31 @@ class RemoveEquipForm(Form):
 @is_admin
 def removeEquip():
 	choices.clear()
-	db = get_db()
-	cur = db.execute("SELECT name FROM equip")
+	cur = mysql.connection.cursor()
+	q = cur.execute("SELECT name FROM equip")
 	b = cur.fetchall()
-	for row in b:
-		tup = (row['name'], row['name'])
+	for i in range(q):
+		tup = (b[i]['name'],b[i]['name'])
 		choices.append(tup)
 	form = RemoveEquipForm(request.form)
+	#num = data['count']
 	if request.method == 'POST' and form.validate():
-		name = form.name.data
-		count = form.count.data
-		
-		# If count is None or empty, delete the entire equipment row
-		if count is None or count == 0 or count == '':
-			db.execute("DELETE FROM equip WHERE name = ?", [name])
-			db.commit()
-			choices.clear()
-			flash('Equipment removed completely!', 'success')
-			return redirect(url_for('addEquip'))
-		
-		# Otherwise, reduce the quantity
-		cur = db.execute("SELECT * FROM equip WHERE name = ?", [name])
-		data = dict_from_row(cur.fetchone())
+		cur.execute("SELECT * FROM equip WHERE name = %s", [form.name.data])
+		data = cur.fetchone()
+		app.logger.info(data['count'])
 		num = data['count']
-		
-		if num >= count and count > 0:
-			new_count = num - count
-			if new_count == 0:
-				# If quantity becomes 0, delete the row
-				db.execute("DELETE FROM equip WHERE name = ?", [name])
-			else:
-				# Otherwise just update the count
-				db.execute("UPDATE equip SET count = ? WHERE name = ?", (new_count, name))
-			db.commit()
+		if num >= form.count.data and form.count.data>0:
+			name = form.name.data
+			count = form.count.data
+			cur = mysql.connection.cursor()
+			cur.execute("UPDATE equip SET count = count-%s WHERE name = %s", (count, name))
+			mysql.connection.commit()
+			cur.close()
 			choices.clear()
-			flash('Equipment quantity updated!', 'success')
-			return redirect(url_for('addEquip'))
+			flash('You successfully removed some of your equipment!!', 'success')
+			return redirect(url_for('adminDash'))
 		else:
-			flash('Invalid quantity! Cannot remove more than available.', 'danger')
+			flash('you must enter valid number', 'danger')
 	return render_template('removeEquip.html', form = form)
 
 choices2 = []
@@ -399,54 +401,51 @@ class AddMemberForm(Form):
 def addMember():
 	choices.clear()
 	choices2.clear()
-	db = get_db()
+	cur = mysql.connection.cursor()
 	
-	cur = db.execute("SELECT username FROM info")
+	q = cur.execute("SELECT username FROM info")
 	b = cur.fetchall()
-	for row in b:
-		values.append(row['username'])
+	for i in range(q):
+		values.append(b[i]['username'])
 	
-	cur = db.execute("SELECT DISTINCT name FROM plans")
+	q = cur.execute("SELECT DISTINCT name FROM plans")
 	b = cur.fetchall()
-	for row in b:
-		tup = (row['name'], row['name'])
+	for i in range(q):
+		tup = (b[i]['name'],b[i]['name'])
 		choices.append(tup)
 	
-	cur = db.execute("SELECT username FROM trainors")
+	q = cur.execute("SELECT username FROM trainors")
 	b = cur.fetchall()
-	for row in b:
-		tup = (row['username'], row['username'])
+	for i in range(q):
+		tup = (b[i]['username'],b[i]['username'])
 		choices2.append(tup)
 	
-	# Get all members with their info
-	cur = db.execute("""
-		SELECT i.username, i.name, i.phone, i.city, m.plan, m.trainor
-		FROM info i 
-		JOIN members m ON i.username = m.username
-	""")
-	members = cur.fetchall()
+	cur.close()
 	
 	form = AddMemberForm(request.form)
 	if request.method == 'POST' and form.validate():
+		#app.logger.info("setzdgxfhcgjvkhbjlkn")
 		name = form.name.data
 		username = form.username.data
-		password = sha256_crypt.hash(str(form.password.data))
+		password = sha256_crypt.encrypt(str(form.password.data))
 		street = form.street.data
 		city = form.city.data
 		phone = form.phone.data
 		plan = form.plan.data
 		trainor = form.trainor.data
+		cur = mysql.connection.cursor()
 
-		db.execute("INSERT INTO info(name, username, password, street, city, prof, phone) VALUES(?, ?, ?, ?, ?, ?, ?)", (name, username, password, street, city, 4, phone))
-		db.execute("INSERT INTO members(username, plan, trainor) VALUES(?, ?, ?)", (username, plan, trainor))
-		db.commit()
+		cur.execute("INSERT INTO info(name, username, password, street, city, prof, phone) VALUES(%s, %s, %s, %s, %s, %s, %s)", (name, username, password, street, city, 4,phone))
+		cur.execute("INSERT INTO members(username, plan, trainor) VALUES(%s, %s, %s)", (username, plan, trainor))
+		mysql.connection.commit()
+		cur.close()
 		choices2.clear()
 		choices.clear()
 		flash('You added a new member!!', 'success')
 		if(session['prof']==1):
 			return redirect(url_for('adminDash'))
 		return redirect(url_for('recepDash'))
-	return render_template('addMember.html', form=form, members=members)
+	return render_template('addMember.html', form=form)
 
 
 @app.route('/deleteMember', methods = ['GET', 'POST'])
@@ -454,18 +453,20 @@ def addMember():
 @is_recep_level
 def deleteMember():
 	choices.clear()
-	db = get_db()
-	cur = db.execute("SELECT username FROM members")
+	cur = mysql.connection.cursor()
+	q = cur.execute("SELECT username FROM members")
 	b = cur.fetchall()
-	for row in b:
-		tup = (row['username'], row['username'])
+	for i in range(q):
+		tup = (b[i]['username'],b[i]['username'])
 		choices.append(tup)
 	form = DeleteRecepForm(request.form)
 	if request.method == 'POST':
 		username = form.username.data
-		db.execute("DELETE FROM members WHERE username = ?", [username])
-		db.execute("DELETE FROM info WHERE username = ?", [username])
-		db.commit()
+		cur = mysql.connection.cursor()
+		cur.execute("DELETE FROM members WHERE username = %s", [username])
+		cur.execute("DELETE FROM info WHERE username = %s", [username])
+		mysql.connection.commit()
+		cur.close()
 		choices.clear()
 		flash('You deleted a member from the GYM!!', 'success')
 		if(session['prof']==1):
@@ -475,8 +476,8 @@ def deleteMember():
 
 @app.route('/viewDetails')
 def viewDetails():
-	db = get_db()
-	cur = db.execute("SELECT username FROM info WHERE username != ?", [session['username']])
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT username FROM info WHERE username != %s", [session['username']])
 	result = cur.fetchall()
 	return render_template('viewDetails.html', result = result)
 
@@ -498,17 +499,21 @@ class trainorForm(Form):
 @is_trainor
 def trainorDash():
 	choices.clear()
-	db = get_db()
-	cur = db.execute("SELECT name, count FROM equip")
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT name, count FROM equip")
 	equips = cur.fetchall()
-	cur = db.execute("SELECT username FROM members WHERE trainor = ?", [session['username']])
+	#app.logger.info(equips)
+	cur.execute("SELECT username FROM members WHERE trainor = %s", [session['username']])
 	members_under = cur.fetchall()
+	cur.close()
+	cur = mysql.connection.cursor()
 
-	cur = db.execute("SELECT username FROM members WHERE trainor = ?", [session['username']])
+	q = cur.execute("SELECT username FROM members WHERE trainor = %s", [session['username']])
 	b = cur.fetchall()
-	for row in b:
-		tup = (row['username'], row['username'])
+	for i in range(q):
+		tup = (b[i]['username'],b[i]['username'])
 		choices.append(tup)
+	cur.close()
 
 	form = trainorForm(request.form)
 
@@ -523,27 +528,34 @@ def trainorDash():
 			rate = 2
 		else:
 			rate = 3
-		
+		#app.logger.info(request.form.input_date)
+		#app.logger.info(date)
 		if datetime.now().date()<date:
 			flash('You cannot predict furture, buoy!!', 'warning')
 			choices.clear()
 			return redirect(url_for('trainorDash'))
 		
-		cur = db.execute("SELECT date FROM progress WHERE username = ?", [username])
+
+		cur = mysql.connection.cursor()
+		p = cur.execute("SELECT date FROM progress WHERE username = %s", [username])
 		entered = []
 		q = cur.fetchall()
-		for row in q:
-			entered.append(row['date'])
+		for i in range(p):
+			entered.append(q[i]['date'])
 		
+
 		if date in entered:
-			db.execute("UPDATE progress SET daily_result = ?, rate = ? WHERE username = ? and date = ?", (report, rate, username, date))
-			db.commit()
+			cur.execute("UPDATE progress SET daily_result = %s, rate = %s WHERE username = %s and date = %s", (report,rate, username, date))
+			mysql.connection.commit()
+			cur.close()
 			choices.clear()
 			flash('Succesfully updated!', 'success')
 			return redirect(url_for('trainorDash'))
 		
-		db.execute("INSERT INTO progress(username, date, daily_result, rate) VALUES(?, ?, ?, ?)", (username, date, report, rate))
-		db.commit()
+
+		cur.execute("INSERT INTO progress(username, date, daily_result, rate) VALUES(%s, %s, %s, %s)", (username, date, report, rate))
+		mysql.connection.commit()
+		cur.close()
 		choices.clear()
 		flash('Progress updated and Reported', 'info')
 		return redirect(url_for('trainorDash'))
@@ -567,14 +579,15 @@ def updatePlans():
 		exercise = form.exercise.data
 		reps = form.reps.data
 		sets = form.sets.data
-		db = get_db()
-		cur = db.execute("SELECT name, exercise FROM plans WHERE name = ? and exercise = ?", (name, exercise))
+		cur = mysql.connection.cursor()
+		cur.execute("SELECT name, exercise FROM plans WHERE name = %s and exercise = %s", (name, exercise))
 		result = cur.fetchall()
 		if len(result)>0:
-			db.execute("UPDATE plans SET sets=?, reps= ? WHERE name = ? and exercise = ?", (sets, reps, name, exercise))
+			cur.execute("UPDATE plans SET sets=%s, reps= %s WHERE name = %s and exercise = %s", (sets, reps, name, exercise))
 		else:
-			db.execute("INSERT INTO plans(name, exercise, sets, reps) VALUES(?, ?, ?, ?)", (name, exercise, sets, reps))
-		db.commit()
+			cur.execute("INSERT INTO plans(name, exercise, sets, reps) VALUES(%s, %s, %s, %s)", (name, exercise, sets, reps))
+		mysql.connection.commit()
+		cur.close()
 		flash('You have updated the plan schemes', 'success')
 		return redirect(url_for('trainorDash'))
 	return render_template('addPlan.html', form = form)
@@ -587,26 +600,24 @@ def memberDash(username):
 	if session['prof']==4 and username!=session['username']:
 		flash('You aren\'t authorised to view other\'s Dashboards', 'danger')
 		return redirect(url_for('memberDash', username = session['username'])) 
-	db = get_db()
-	cur = db.execute("SELECT plan FROM members WHERE username = ?", [username])
-	plan = dict_from_row(cur.fetchone())['plan']
-	cur = db.execute("SELECT exercise, reps, sets FROM plans WHERE name = ?", [plan])
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT plan FROM members WHERE username = %s", [username])
+	plan = (cur.fetchone())['plan']
+	cur.execute("SELECT exercise, reps, sets FROM plans WHERE name = %s", [plan])
 	scheme = cur.fetchall()
-	cur = db.execute("SELECT date, daily_result, rate FROM progress WHERE username = ? ORDER BY date DESC", [username])
+	n = cur.execute("SELECT date, daily_result, rate FROM progress WHERE username = %s ORDER BY date DESC", [username])
 	progress = cur.fetchall()
 	result = []
-	for row in progress:
-		result.append(int(row['rate']))
+	for i in range(n):
+		result.append(int(progress[i]['rate']))
 	good = result.count(1)
 	poor = result.count(3)
 	average = result.count(2)
 	total = good + poor + average
-	if total > 0:
-		good = round((good/total) * 100, 2)
-		average = round((average/total) * 100, 2)
-		poor = round((poor/total) * 100, 2)
-	else:
-		good = average = poor = 0
+	good = round((good/total) * 100, 2)
+	average = round((average/total) * 100, 2)
+	poor = round((poor/total) * 100, 2)
+	cur.close()
 	return render_template('memberDash.html',user = username, plan = plan, scheme = scheme, progress = progress, good = good, poor = poor, average = average)
 
 
@@ -615,8 +626,8 @@ def memberDash(username):
 @is_logged_in
 def profile(username):
 	if username == session['username'] or session['prof']==1 or session['prof']==2:
-		db = get_db()
-		cur = db.execute("SELECT * FROM info WHERE username = ?", [username])
+		cur = mysql.connection.cursor()
+		cur.execute("SELECT * FROM info WHERE username = %s", [username])
 		result = cur.fetchone()
 		return render_template('profile.html', result = result)
 	flash('You cannot view other\'s profile', 'warning')
@@ -647,9 +658,9 @@ def edit_profile(username):
 		if session['prof']==3:
 			return redirect(url_for('trainorDash', username = username))
 
-	db = get_db()
-	cur = db.execute("SELECT * FROM info WHERE username = ?", [username])
-	result = dict_from_row(cur.fetchone())
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT * FROM info WHERE username = %s", [username]);
+	result = cur.fetchone()
 
 	form = EditForm(request.form)
 	
@@ -658,7 +669,10 @@ def edit_profile(username):
 	form.city.data = result['city']
 	form.phone.data = result['phone']
 
+	cur.close()
+
 	if request.method == 'POST' and form.validate():
+		#app.logger.info("setzdgxfhcgjvkhbjlkn")
 		name = request.form['name']
 		street = request.form['street']
 		city = request.form['city']
@@ -666,9 +680,12 @@ def edit_profile(username):
 		app.logger.info(name)
 		app.logger.info(street)
 		app.logger.info(city)
+		cur = mysql.connection.cursor()
 
-		db.execute("UPDATE info SET name = ?, street = ?, city = ?, phone = ? WHERE username = ?", (name, street, city, phone, username))
-		db.commit()
+		q = cur.execute("UPDATE info SET name = %s, street = %s, city = %s, phone = %s WHERE username = %s", (name, street, city, phone, username))
+		app.logger.info(q)
+		mysql.connection.commit()
+		cur.close()
 		flash('You successfully updated your profile!!', 'success')
 		if session['prof']==4:
 			return redirect(url_for('memberDash', username = username))

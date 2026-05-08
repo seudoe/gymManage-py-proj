@@ -1,15 +1,106 @@
-{% extends 'layout.html' %}
+<!DOCTYPE html>
+<html>
 
-{% block body %}
-<br>
-<br>
-<br>
-<div class="container jumbotron text-center">
-	<h1><strong>Welcome to Gym Management System</strong></h1>
-	<p class="font-italic">The Gym Management System is to automate everything that happens
-in the gym. It is to aid and simplify the job all those who work for the gym, who train
-in the gym and who owns the gym. The database consists of daily goals and stats of
-achievements/progress of a member who trains in the gym, contact details and
-personal info of everyone, training programs that the gym offers, equipment etc.</p>
-</div>
-{% endblock %}
+<head>
+    <title>Gym Management System</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'assets/bootstrap/css/bootstrap.min.css')}}">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #2c3e50;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .home-container {
+            text-align: center;
+            color: white;
+            max-width: 800px;
+            padding: 40px;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .btn-home {
+            background: #3498db;
+            color: white;
+            padding: 15px 50px;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .btn-home:hover {
+            background: #2980b9;
+            color: white;
+            text-decoration: none;
+        }
+
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 4px;
+            flex: 1;
+            max-width: 250px;
+        }
+
+        .feature h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .feature p {
+            font-size: 14px;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="home-container">
+        <h1>Gym Management System</h1>
+        <p>Streamline your gym operations with our comprehensive management solution</p>
+        <a href="{{ url_for('login') }}" class="btn-home">Get Started</a>
+
+        <div class="features">
+            <div class="feature">
+                <h3>Member Management</h3>
+                <p>Track and manage all your gym members efficiently</p>
+            </div>
+            <div class="feature">
+                <h3>Trainer Portal</h3>
+                <p>Trainers can track member progress and update plans</p>
+            </div>
+            <div class="feature">
+                <h3>Equipment Tracking</h3>
+                <p>Monitor and manage gym equipment inventory</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
